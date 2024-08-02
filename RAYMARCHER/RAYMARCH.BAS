@@ -117,14 +117,15 @@ DO
 LOOP
 
 END
-
 SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
-    FOR c = 1 TO numCubes
-        REDIM px(8) AS SINGLE, py(8) AS SINGLE
-        CONST cx = 320
-        CONST cy = 240
-        CONST scale = 100
+    CONST cx = 320
+    CONST cy = 240
+    CONST scale = 100
 
+    DIM px(8) AS SINGLE
+    DIM py(8) AS SINGLE
+
+    FOR c = 1 TO numCubes
         FOR i = 1 TO 8
             CALL Project3DTo2D(cubes(c, i, 1), cubes(c, i, 2), cubes(c, i, 3), px(i), py(i), camX, camY, camZ, camRotX, camRotY)
         NEXT i
@@ -134,8 +135,11 @@ SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, cam
             y1 = py(edges(i, 1))
             x2 = px(edges(i, 2))
             y2 = py(edges(i, 2))
-            LINE (x1, y1)-(x2, y2), 15
+
+            ' Check if any of the coordinates are outside the screen bounds
+            IF x1 >= 0 AND x1 <= 640 AND y1 >= 0 AND y1 <= 480 AND x2 >= 0 AND x2 <= 640 AND y2 >= 0 AND y2 <= 480 THEN
+                LINE (x1, y1)-(x2, y2), 15
+            END IF
         NEXT i
     NEXT c
 END SUB
-
