@@ -1,3 +1,4 @@
+' Copyright (C) 2024 Kevin Dalli 
 DECLARE SUB SaveRawImage (filename$)
 
 SCREEN 13
