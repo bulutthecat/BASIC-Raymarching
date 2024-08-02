@@ -94,13 +94,32 @@ SUB GenCube (cube() AS SINGLE, edges() AS INTEGER, locX AS INTEGER, locY AS INTE
     edges(12, 1) = 4: edges(12, 2) = 8
 END SUB
 
-SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SINGLE)
+SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SINGLE, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
     CONST cx = 320
     CONST cy = 240
     CONST cz = 3
     CONST scale = 100
 
+    ' Apply camera rotation around Y-axis (left-right)
+    DIM tempX AS SINGLE, tempZ AS SINGLE
+    tempX = x * COS(camRotY * 3.14159 / 180) - z * SIN(camRotY * 3.14159 / 180)
+    tempZ = x * SIN(camRotY * 3.14159 / 180) + z * COS(camRotY * 3.14159 / 180)
+    x = tempX
+    z = tempZ
+
+    ' Apply camera rotation around X-axis (up-down)
+    DIM tempY AS SINGLE
+    tempY = y * COS(camRotX * 3.14159 / 180) - z * SIN(camRotX * 3.14159 / 180)
+    tempZ = y * SIN(camRotX * 3.14159 / 180) + z * COS(camRotX * 3.14159 / 180)
+    y = tempY
+    z = tempZ
+
+    ' Apply camera transformation
+    x = x - camX
+    y = y - camY
+    z = z - camZ
+
+    ' Perspective projection
     px = cx + scale * x / (z + cz)
     py = cy - scale * y / (z + cz)
 END SUB
-

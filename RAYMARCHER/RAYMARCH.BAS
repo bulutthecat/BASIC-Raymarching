@@ -1,14 +1,28 @@
 ' Copyright (C) Kevin Dalli 2024
 
-DECLARE SUB RenderCube (cube() AS SINGLE, edges() AS INTEGER)
-DECLARE SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SINGLE)
+DECLARE SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
+DECLARE SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SINGLE, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
 DECLARE SUB GenCube (cube() AS SINGLE, edges() AS INTEGER, locX AS INTEGER, locY AS INTEGER, locZ AS INTEGER, sclX AS SINGLE, sclY AS SINGLE, sclZ AS SINGLE, rotX AS SINGLE, rotY AS SINGLE, rotZ AS SINGLE)
 
 SCREEN 12
 
-DIM cube(8, 3) AS SINGLE
+
+CONST MAXCUBES = 10
+
+DIM cubes(MAXCUBES, 8, 3) AS SINGLE
 DIM edges(12, 2) AS INTEGER
 
+DIM numCubes AS INTEGER
+numCubes = MAXCUBES
+
+DIM locX AS INTEGER
+DIM locY AS INTEGER
+DIM locZ AS INTEGER
+DIM sclX AS SINGLE
+DIM sclY AS SINGLE
+DIM sclZ AS SINGLE
+
+DIM i AS INTEGER
 DIM LX AS INTEGER
 DIM LY AS INTEGER
 DIM LZ AS INTEGER
@@ -18,6 +32,8 @@ DIM SZ AS SINGLE
 DIM rotX AS SINGLE
 DIM rotY AS SINGLE
 DIM rotZ AS SINGLE
+DIM camRotX AS SINGLE
+DIM camRotY AS SINGLE
 
 ' initial values
 
@@ -29,104 +45,97 @@ SX = 1
 SY = 1
 SZ = 1
 
-rotX = 20
+rotX = 0
 rotY = 0
 rotZ = 0
 
-CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, rotX, rotY, rotZ) ' OBJ, EDG, X, Y, Z, Xsize, Ysize, Zsize, Xrot, Yrot, Zrot
+camX = 0
+camY = 0
+camZ = 0
 
-RenderCube cube(), edges()
+camRotX = 0
+camRotY = 0
 
-' NOTE: put the following in the animation library
-'WHILE LX < 5
-'    LX = LX + 1
-'    CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, 0, 0, 0)
-'   
-'    RenderCube cube(), edges()
-'    SLEEP 1
-'WEND
-'
-'WHILE LY < 5
-'    LY = LY + 1
-'    CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, 0 ,0, 0)
-'
-'    RenderCube cube(), edges()
-'    SLEEP 1
-'WEND
-'
-'WHILE LZ < 5
-'    LZ = LZ + 1
-'    CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, 0, 0, 0)
-'
-'    RenderCube cube(), edges()
-'    SLEEP 1
-'WEND
-'
-'WHILE rotX < 180
-'    rotX = rotX + 25
-'    CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, rotX, 0, 0)
-'
-'    RenderCube cube(), edges()
-'    SLEEP 1
-'WEND
-'
-'WHILE rotY < 180
-'    rotY = rotY + 25
-'    CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, rotX, rotY, 0)
-'
-'    RenderCube cube(), edges()
-'    SLEEP 1
-'WEND
-'
-'WHILE rotZ < 180
-'    rotZ = rotZ + 25
-'    CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, rotX, rotY, rotZ)
-'
-'    RenderCube cube(), edges()
-'    SLEEP 1
-'WEND
+'CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, rotX, rotY, rotZ) ' OBJ, EDG, X, Y, Z, Xsize, Ysize, Zsize, Xrot, Yrot, Zrot
+RANDOMIZE TIMER
+FOR i = 1 TO numCubes
+    ' Generate random position and size
+    locX = INT(RND * 20) - 10
+    locY = INT(RND * 20) - 10
+    locZ = INT(RND * 20) - 10
+    sclX = RND + 0.5
+    sclY = RND + 0.5
+    sclZ = RND + 0.5
+    
+    ' Use a temporary array to hold the cube vertices for the GenCube call
+    DIM tempCube(8, 3) AS SINGLE
 
-' This does not work in QB64 compile 16 bit
-'WHILE INKEY$ = "d"
-'    IF INKEY$ = "w" THEN
-'        rotX = rotX + 5
-'    ELSEIF INKEY$ = "s" THEN
-'        rotX = rotX - 5
-'    ELSEIF INKEY$ = "a" THEN
-'        rotY = rotY + 5
-'    ELSEIF INKEY$ = "d" THEN
-'        rotY = rotY - 5
-'    ELSEIF INKEY$ = "q" THEN
-'        rotZ = rotZ + 5
-'    ELSEIF INKEY$ = "e" THEN
-'        rotZ = rotZ - 5
-'    END IF
-'
-'    CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, rotX, rotY, rotZ)
-'    RenderCube cube(), edges()
-'WEND
+    ' Call GenCube to generate a cube at a random location and size
+    CALL GenCube(tempCube(), edges(), locX, locY, locZ, sclX, sclY, sclZ, 0, 0, 0)
 
-DO WHILE INKEY$ = ""
+    ' Copy the generated cube vertices to the main cubes array
+    FOR v = 1 TO 8
+        FOR c = 1 TO 3
+            cubes(i, v, c) = tempCube(v, c)
+        NEXT c
+    NEXT v
+NEXT i
+
+DO
+    CLS
+    RenderCubes cubes(), edges(), numCubes, camX, camY, camZ, camRotX, camRotY
+    key$ = INKEY$
+    SELECT CASE key$
+        CASE "w"
+            camZ = camZ + .1
+        CASE "s"
+            camZ = camZ - .1
+        CASE "a"
+            camX = camX - .1
+        CASE "d"
+            camX = camX + .1
+        CASE "q"
+            camY = camY - .1
+        CASE "e"
+            camY = camY + .1
+        CASE "r" ' this fixes a bug which puts the camera in an unrecoverable loop
+            camX = 0
+            camY = 0
+            camZ = 0
+            camRotX = 0
+            camRotY = 0
+        CASE CHR$(27) ' Escape key
+            EXIT DO
+    END SELECT
+
+    IF key$ = CHR$(0) + CHR$(72) THEN camRotX = camRotX + 1 ' up arrow
+    IF key$ = CHR$(0) + CHR$(80) THEN camRotX = camRotX - 1 ' down arrow
+    IF key$ = CHR$(0) + CHR$(75) THEN camRotY = camRotY + 1 ' left arrow
+    IF key$ = CHR$(0) + CHR$(77) THEN camRotY = camRotY - 1 ' right arrow
+
+    FOR delay = 1 TO 500: NEXT delay
 LOOP
+
 END
 
-SUB RenderCube (cube() AS SINGLE, edges() AS INTEGER)
-    DIM px(8) AS SINGLE, py(8) AS SINGLE
-    CONST cx = 320
-    CONST cy = 240
-    CONST cz = 3
-    CONST scale = 100
+SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
+    FOR c = 1 TO numCubes
+        REDIM px(8) AS SINGLE, py(8) AS SINGLE
+        CONST cx = 320
+        CONST cy = 240
+        CONST scale = 100
 
-    FOR i = 1 TO 8
-        CALL Project3DTo2D(cube(i, 1), cube(i, 2), cube(i, 3), px(i), py(i))
-    NEXT i
+        FOR i = 1 TO 8
+            CALL Project3DTo2D(cubes(c, i, 1), cubes(c, i, 2), cubes(c, i, 3), px(i), py(i), camX, camY, camZ, camRotX, camRotY)
+        NEXT i
 
-    FOR i = 1 TO 12
-        x1 = px(edges(i, 1))
-        y1 = py(edges(i, 1))
-        x2 = px(edges(i, 2))
-        y2 = py(edges(i, 2))
-        LINE (x1, y1)-(x2, y2), 15
-    NEXT i
+        FOR i = 1 TO 12
+            x1 = px(edges(i, 1))
+            y1 = py(edges(i, 1))
+            x2 = px(edges(i, 2))
+            y2 = py(edges(i, 2))
+            LINE (x1, y1)-(x2, y2), 15
+        NEXT i
+    NEXT c
 END SUB
 
