@@ -100,26 +100,26 @@ SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SI
     CONST cz = 3
     CONST scale = 100
 
-    ' Apply camera rotation around Y-axis (left-right)
+    ' apply camera rotation around Y-axis
     DIM tempX AS SINGLE, tempZ AS SINGLE
     tempX = x * COS(camRotY * 3.14159 / 180) - z * SIN(camRotY * 3.14159 / 180)
     tempZ = x * SIN(camRotY * 3.14159 / 180) + z * COS(camRotY * 3.14159 / 180)
     x = tempX
     z = tempZ
 
-    ' Apply camera rotation around X-axis (up-down)
+    ' camera rotation around X-axis
     DIM tempY AS SINGLE
     tempY = y * COS(camRotX * 3.14159 / 180) - z * SIN(camRotX * 3.14159 / 180)
     tempZ = y * SIN(camRotX * 3.14159 / 180) + z * COS(camRotX * 3.14159 / 180)
     y = tempY
     z = tempZ
 
-    ' Apply camera transformation
+    ' camera transformation
     x = x - camX
     y = y - camY
     z = z - camZ
 
-    ' Perspective projection
+    ' perspective projection
     px = cx + scale * x / (z + cz)
     py = cy - scale * y / (z + cz)
 END SUB

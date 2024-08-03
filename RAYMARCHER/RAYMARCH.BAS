@@ -56,10 +56,8 @@ camZ = 0
 camRotX = 0
 camRotY = 0
 
-'CALL GenCube(cube(), edges(), LX, LY, LZ, SX, SY, SZ, rotX, rotY, rotZ) ' OBJ, EDG, X, Y, Z, Xsize, Ysize, Zsize, Xrot, Yrot, Zrot
 RANDOMIZE TIMER
 FOR i = 1 TO numCubes
-    ' Generate random position and size
     locX = INT(RND * 20) - 10
     locY = INT(RND * 20) - 10
     locZ = INT(RND * 20) - 10
@@ -67,16 +65,14 @@ FOR i = 1 TO numCubes
     sclY = RND + 0.5
     sclZ = RND + 0.5
     
-    ' Use a temporary array to hold the cube vertices for the GenCube call
     DIM tempCube(8, 3) AS SINGLE
 
-    ' Call GenCube to generate a cube at a random location and size
     CALL GenCube(tempCube(), edges(), locX, locY, locZ, sclX, sclY, sclZ, 0, 0, 0)
 
-    ' Copy the generated cube vertices to the main cubes array
+    ' copy vertecies into main cube array
     FOR v = 1 TO 8
         FOR c = 1 TO 3
-            cubes(i, v, c) = tempCube(v, c)
+            cubes(i, v, c) = tempCube(v, c) ' it is possible to load other geomatry thats not cubic, but this currently requires manual editing of the cubelib library
         NEXT c
     NEXT v
 NEXT i
@@ -136,7 +132,7 @@ SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, cam
             x2 = px(edges(i, 2))
             y2 = py(edges(i, 2))
 
-            ' Check if any of the coordinates are outside the screen bounds
+            ' this checks if there is any geomatry outside of screen bounds (to prevent endless calculations & buffer overflow)
             IF x1 >= 0 AND x1 <= 640 AND y1 >= 0 AND y1 <= 480 AND x2 >= 0 AND x2 <= 640 AND y2 >= 0 AND y2 <= 480 THEN
                 LINE (x1, y1)-(x2, y2), 15
             END IF
