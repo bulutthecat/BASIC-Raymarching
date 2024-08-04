@@ -94,11 +94,14 @@ SUB GenCube (cube() AS SINGLE, edges() AS INTEGER, locX AS INTEGER, locY AS INTE
     edges(12, 1) = 4: edges(12, 2) = 8
 END SUB
 
+
+' the following code is well documented, as this class CAN be overwritten when implementing custom rendering code
+
 SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SINGLE, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
-    CONST cx = 160  ' Center of the screen (half of 320)
-    CONST cy = 100  ' Center of the screen (half of 200)
+    CONST cx = 160
+    CONST cy = 100
     CONST cz = 3
-    CONST scale = 50  ' Adjusted scale for SCREEN 7
+    CONST scale = 50  ' adjust this value to change the field of view
 
     ' apply camera rotation around Y-axis
     DIM tempX AS SINGLE, tempZ AS SINGLE
@@ -107,17 +110,24 @@ SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SI
     x = tempX
     z = tempZ
 
-    ' camera rotation around X-axis
+    ' apply camera rotation around X-axis
     DIM tempY AS SINGLE
     tempY = y * COS(camRotX * 3.14159 / 180) - z * SIN(camRotX * 3.14159 / 180)
     tempZ = y * SIN(camRotX * 3.14159 / 180) + z * COS(camRotX * 3.14159 / 180)
     y = tempY
     z = tempZ
 
-    ' camera transformation
+    ' apply camera transformation
     x = x - camX
     y = y - camY
     z = z - camZ
+
+    ' fixes the issue of vertex mapping outside the screen, causing redraw in front of the camera
+    IF z <= 0 THEN
+        px = -1
+        py = -1
+        EXIT SUB
+    END IF
 
     ' perspective projection
     px = cx + scale * x / (z + cz)
