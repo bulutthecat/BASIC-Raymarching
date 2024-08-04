@@ -95,10 +95,10 @@ SUB GenCube (cube() AS SINGLE, edges() AS INTEGER, locX AS INTEGER, locY AS INTE
 END SUB
 
 SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SINGLE, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
-    CONST cx = 320
-    CONST cy = 240
+    CONST cx = 160  ' Center of the screen (half of 320)
+    CONST cy = 100  ' Center of the screen (half of 200)
     CONST cz = 3
-    CONST scale = 100
+    CONST scale = 50  ' Adjusted scale for SCREEN 7
 
     ' apply camera rotation around Y-axis
     DIM tempX AS SINGLE, tempZ AS SINGLE

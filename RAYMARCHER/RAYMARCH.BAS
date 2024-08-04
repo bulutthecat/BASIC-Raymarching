@@ -1,18 +1,12 @@
 ' Copyright (C) Kevin Dalli 2024
 
-DECLARE SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE, buffer() AS INTEGER)
+DECLARE SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
 DECLARE SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SINGLE, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
 DECLARE SUB GenCube (cube() AS SINGLE, edges() AS INTEGER, locX AS INTEGER, locY AS INTEGER, locZ AS INTEGER, sclX AS SINGLE, sclY AS SINGLE, sclZ AS SINGLE, rotX AS SINGLE, rotY AS SINGLE, rotZ AS SINGLE)
 
-SCREEN 12
-
+SCREEN 7, , 0, 1  ' Set up SCREEN 7 with two pages
 
 CONST MAXCUBES = 10
-
-CONST SCREENWIDTH = 640
-CONST SCREENHEIGHT = 480
-
-DIM buffer(SCREENWIDTH * SCREENHEIGHT) AS INTEGER
 
 DIM cubes(MAXCUBES, 8, 3) AS SINGLE
 DIM edges(12, 2) AS INTEGER
@@ -20,49 +14,31 @@ DIM edges(12, 2) AS INTEGER
 DIM numCubes AS INTEGER
 numCubes = MAXCUBES
 
+DIM i AS INTEGER
 DIM locX AS INTEGER
 DIM locY AS INTEGER
 DIM locZ AS INTEGER
 DIM sclX AS SINGLE
 DIM sclY AS SINGLE
 DIM sclZ AS SINGLE
-
-DIM i AS INTEGER
-DIM LX AS INTEGER
-DIM LY AS INTEGER
-DIM LZ AS INTEGER
-DIM SX AS SINGLE
-DIM SY AS SINGLE
-DIM SZ AS SINGLE
-DIM rotX AS SINGLE
-DIM rotY AS SINGLE
-DIM rotZ AS SINGLE
+DIM camX AS SINGLE
+DIM camY AS SINGLE
+DIM camZ AS SINGLE
 DIM camRotX AS SINGLE
 DIM camRotY AS SINGLE
 
-' initial values
-
-LX = 0
-LY = 0
-LZ = 0
-
-SX = 1
-SY = 1
-SZ = 1
-
-rotX = 0
-rotY = 0
-rotZ = 0
-
+' Initial values
 camX = 0
 camY = 0
-camZ = 0
+camZ = -10 ' Start the camera 10 units back
 
 camRotX = 0
 camRotY = 0
 
 RANDOMIZE TIMER
+
 FOR i = 1 TO numCubes
+    ' Generate random position and size
     locX = INT(RND * 20) - 10
     locY = INT(RND * 20) - 10
     locZ = INT(RND * 20) - 10
@@ -70,130 +46,91 @@ FOR i = 1 TO numCubes
     sclY = RND + 0.5
     sclZ = RND + 0.5
     
+    ' Use a temporary array to hold the cube vertices for the GenCube call
     DIM tempCube(8, 3) AS SINGLE
 
+    ' Call GenCube to generate a cube at a random location and size
     CALL GenCube(tempCube(), edges(), locX, locY, locZ, sclX, sclY, sclZ, 0, 0, 0)
 
-    ' copy vertecies into main cube array
+    ' Copy the generated cube vertices to the main cubes array
     FOR v = 1 TO 8
         FOR c = 1 TO 3
-            cubes(i, v, c) = tempCube(v, c) ' it is possible to load other geomatry thats not cubic, but this currently requires manual editing of the cubelib library
+            cubes(i, v, c) = tempCube(v, c)
         NEXT c
     NEXT v
 NEXT i
 
-' Main loop
 DO
-    ' Clear the buffer
-    FOR i = 0 TO SCREENWIDTH * SCREENHEIGHT - 1
-        Buffer(i) = 0
-    NEXT i
+    ' Copy the visible screen (page 1) to the hidden page (page 0)
+    PCOPY 1, 0
+    CLS
 
-    RenderCubes Cubes(), Edges(), NumCubes, CamX, CamY, CamZ, CamRotX, CamRotY, Buffer()
+    ' Render to the hidden page (page 0)
+    RenderCubes cubes(), edges(), numCubes, camX, camY, camZ, camRotX, camRotY
 
-    ' Copy buffer to screen
-    CopyBufferToScreen Buffer()
+    ' Copy the hidden page (page 0) to the visible screen (page 1)
+    PCOPY 0, 1
 
+    ' Read key input
     key$ = INKEY$
     SELECT CASE key$
         CASE "w"
-            CamZ = CamZ + .1
+            camZ = camZ + 0.1
         CASE "s"
-            CamZ = CamZ - .1
+            camZ = camZ - 0.1
         CASE "a"
-            CamX = CamX - .1
+            camX = camX - 0.1
         CASE "d"
-            CamX = CamX + .1
+            camX = camX + 0.1
         CASE "q"
-            CamY = CamY - .1
+            camY = camY - 0.1
         CASE "e"
-            CamY = CamY + .1
+            camY = camY + 0.1
         CASE "r" ' this fixes a bug which puts the camera in an unrecoverable loop
-            CamX = 0
-            CamY = 0
-            CamZ = 0
-            CamRotX = 0
-            CamRotY = 0
+            camX = 0
+            camY = 0
+            camZ = 0
+            camRotX = 0
+            camRotY = 0
         CASE CHR$(27) ' Escape key
             EXIT DO
     END SELECT
 
-    IF key$ = CHR$(0) + CHR$(72) THEN CamRotX = CamRotX + 1 ' up arrow
-    IF key$ = CHR$(0) + CHR$(80) THEN CamRotX = CamRotX - 1 ' down arrow
-    IF key$ = CHR$(0) + CHR$(75) THEN CamRotY = CamRotY + 1 ' left arrow
-    IF key$ = CHR$(0) + CHR$(77) THEN CamRotY = CamRotY - 1 ' right arrow
+    IF key$ = CHR$(0) + CHR$(72) THEN camRotX = camRotX + 1 ' Up arrow
+    IF key$ = CHR$(0) + CHR$(80) THEN camRotX = camRotX - 1 ' Down arrow
+    IF key$ = CHR$(0) + CHR$(75) THEN camRotY = camRotY + 1 ' Left arrow
+    IF key$ = CHR$(0) + CHR$(77) THEN camRotY = camRotY - 1 ' Right arrow
 
+    ' Wait for a short time to control movement speed
     FOR delay = 1 TO 500: NEXT delay
 LOOP
 
+SCREEN 0  ' Restore the screen back to normal
 END
 
-SUB RenderCubes (Cubes() AS SINGLE, Edges() AS INTEGER, NumCubes AS INTEGER, CamX AS SINGLE, CamY AS SINGLE, CamZ AS SINGLE, CamRotX AS SINGLE, CamRotY AS SINGLE, Buffer() AS INTEGER)
-    CONST cx = 320
-    CONST cy = 240
-    CONST scale = 100
+SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
+    CONST cx = 160  ' Center of the screen (half of 320)
+    CONST cy = 100  ' Center of the screen (half of 200)
+    CONST scale = 50  ' Adjusted scale for SCREEN 7
 
     DIM px(8) AS SINGLE
     DIM py(8) AS SINGLE
-    DIM x1 AS INTEGER
-    DIM y1 AS INTEGER
-    DIM x2 AS INTEGER
-    DIM y2 AS INTEGER
 
-    FOR c = 1 TO NumCubes
+    FOR c = 1 TO numCubes
         FOR i = 1 TO 8
-            CALL Project3DTo2D(Cubes(c, i, 1), Cubes(c, i, 2), Cubes(c, i, 3), px(i), py(i), CamX, CamY, CamZ, CamRotX, CamRotY)
+            CALL Project3DTo2D(cubes(c, i, 1), cubes(c, i, 2), cubes(c, i, 3), px(i), py(i), camX, camY, camZ, camRotX, camRotY)
         NEXT i
 
         FOR i = 1 TO 12
-            x1 = px(Edges(i, 1))
-            y1 = py(Edges(i, 1))
-            x2 = px(Edges(i, 2))
-            y2 = py(Edges(i, 2))
+            x1 = px(edges(i, 1))
+            y1 = py(edges(i, 1))
+            x2 = px(edges(i, 2))
+            y2 = py(edges(i, 2))
 
-            ' Draw line to buffer instead of screen
-            CALL DrawLineToBuffer(Buffer(), x1, y1, x2, y2, SCREENWIDTH, SCREENHEIGHT, 15)
+            ' Check if any of the coordinates are outside the screen bounds
+            IF x1 >= 0 AND x1 <= 320 AND y1 >= 0 AND y1 <= 200 AND x2 >= 0 AND x2 <= 320 AND y2 >= 0 AND y2 <= 200 THEN
+                LINE (x1, y1)-(x2, y2), 15
+            END IF
         NEXT i
     NEXT c
-END SUB
-
-
-SUB DrawLineToBuffer (Buffer() AS INTEGER, x1 AS INTEGER, y1 AS INTEGER, x2 AS INTEGER, y2 AS INTEGER, ScreenWidth AS INTEGER, ScreenHeight AS INTEGER, Col AS INTEGER)
-    ' Simplified Bresenham's line algorithm
-    DIM dx AS INTEGER, dy AS INTEGER, sx AS INTEGER, sy AS INTEGER, error AS INTEGER, e2 AS INTEGER
-
-    dx = ABS(x2 - x1)
-    dy = ABS(y2 - y1)
-    IF x1 < x2 THEN sx = 1 ELSE sx = -1
-    IF y1 < y2 THEN sy = 1 ELSE sy = -1
-    error = dx - dy
-
-    DO
-        IF x1 >= 0 AND x1 < ScreenWidth AND y1 >= 0 AND y1 < ScreenHeight THEN
-            Buffer(x1 + y1 * ScreenWidth) = Col
-        END IF
-
-        IF x1 = x2 AND y1 = y2 THEN EXIT DO
-        e2 = 2 * error
-        IF e2 > -dy THEN
-            error = error - dy
-            x1 = x1 + sx
-        END IF
-        IF e2 < dx THEN
-            error = error + dx
-            y1 = y1 + sy
-        END IF
-    LOOP
-END SUB
-
-SUB CopyBufferToScreen (Buffer() AS INTEGER)
-    DEF SEG = &HA000  ' Video memory segment
-
-    FOR y = 0 TO SCREENHEIGHT - 1
-        FOR x = 0 TO SCREENWIDTH - 1
-            POKE x + y * SCREENWIDTH, Buffer(x + y * SCREENWIDTH)
-        NEXT x
-    NEXT y
-
-    DEF SEG  ' Reset segment to default
 END SUB
