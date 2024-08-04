@@ -1,37 +1,51 @@
-' Set the screen to graphics mode with page flipping
+' Copyright (C) 2024 Kevin Dalli
+' This documents a simple method of double buffering in QB16 DOS
+
 SCREEN 7
 
-' Define the position variables
 DIM x AS INTEGER
 DIM y AS INTEGER
-x = 160 ' Initial horizontal position (middle of the screen)
-y = 100 ' Initial vertical position (middle of the screen)
+x = 160
+y = 100
 
-' Define the direction of movement
 DIM dx AS INTEGER
-dx = 2 ' Move 2 pixels at a time
+dx = 2 ' direction
 
-' Main loop
 WHILE INKEY$ = ""
-    ' Set the active page to 0 (drawing page)
-    PCOPY 1, 0
-    CLS ' Clear the screen
+    ' this defines the active "page"
+    '
+    ' Pages are assentially "virtual displays" that can be used 
+    ' to draw graphics off-screen before displaying them on the
+    ' visible screen. This is useful for double buffering, where
+    ' you draw to one page while displaying the other, then swap
+    ' them to avoid flickering.
 
-    ' Draw the box in the current position on virtual screen (page 0)
-    PSET (x, y), 15 ' Draw point at position (x, y) with color white
+    PCOPY 1, 0 ' copy the visible screen (page 1) to virtual screen (page 0)'
+    CLS
 
-    ' Update the position
-    x = x + dx
+    PSET (x, y), 15
+
+    x = x + dx ' \/ position updates
     IF x > 320 OR x < 0 THEN
-        dx = -dx ' Change direction if it hits the screen boundaries
+        dx = -dx
     END IF
 
-    ' Wait to simulate frame rate
     FOR delay = 1 TO 5000: NEXT delay
 
-    ' Copy the virtual screen (page 0) to visible screen (page 1)
+    ' copy the virtual screen (page 0) to visible screen (page 1)
     PCOPY 0, 1
 WEND
 
-' Return to text mode
+' restore the screen back to normal
 SCREEN 0
+
+' the following code is the same as the above without any rendering
+
+'SCREEN 7
+'WHILE INKEY$ = ""
+'    PCOPY 1, 0
+'    CLS
+'    ' <-- rendering code here
+'    PCOPY 0, 1
+'WEND
+'SCREEN 0
