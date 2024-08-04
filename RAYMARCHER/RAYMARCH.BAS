@@ -86,42 +86,42 @@ NEXT i
 DO
     ' Clear the buffer
     FOR i = 0 TO SCREENWIDTH * SCREENHEIGHT - 1
-        buffer(i) = 0
+        Buffer(i) = 0
     NEXT i
 
-    RenderCubes cubes(), edges(), numCubes, camX, camY, camZ, camRotX, camRotY, buffer()
+    RenderCubes Cubes(), Edges(), NumCubes, CamX, CamY, CamZ, CamRotX, CamRotY, Buffer()
 
     ' Copy buffer to screen
-    CopyBufferToScreen buffer()
+    CopyBufferToScreen Buffer()
 
     key$ = INKEY$
     SELECT CASE key$
         CASE "w"
-            camZ = camZ + .1
+            CamZ = CamZ + .1
         CASE "s"
-            camZ = camZ - .1
+            CamZ = CamZ - .1
         CASE "a"
-            camX = camX - .1
+            CamX = CamX - .1
         CASE "d"
-            camX = camX + .1
+            CamX = CamX + .1
         CASE "q"
-            camY = camY - .1
+            CamY = CamY - .1
         CASE "e"
-            camY = camY + .1
+            CamY = CamY + .1
         CASE "r" ' this fixes a bug which puts the camera in an unrecoverable loop
-            camX = 0
-            camY = 0
-            camZ = 0
-            camRotX = 0
-            camRotY = 0
+            CamX = 0
+            CamY = 0
+            CamZ = 0
+            CamRotX = 0
+            CamRotY = 0
         CASE CHR$(27) ' Escape key
             EXIT DO
     END SELECT
 
-    IF key$ = CHR$(0) + CHR$(72) THEN camRotX = camRotX + 1 ' up arrow
-    IF key$ = CHR$(0) + CHR$(80) THEN camRotX = camRotX - 1 ' down arrow
-    IF key$ = CHR$(0) + CHR$(75) THEN camRotY = camRotY + 1 ' left arrow
-    IF key$ = CHR$(0) + CHR$(77) THEN camRotY = camRotY - 1 ' right arrow
+    IF key$ = CHR$(0) + CHR$(72) THEN CamRotX = CamRotX + 1 ' up arrow
+    IF key$ = CHR$(0) + CHR$(80) THEN CamRotX = CamRotX - 1 ' down arrow
+    IF key$ = CHR$(0) + CHR$(75) THEN CamRotY = CamRotY + 1 ' left arrow
+    IF key$ = CHR$(0) + CHR$(77) THEN CamRotY = CamRotY - 1 ' right arrow
 
     FOR delay = 1 TO 500: NEXT delay
 LOOP
@@ -135,6 +135,10 @@ SUB RenderCubes (Cubes() AS SINGLE, Edges() AS INTEGER, NumCubes AS INTEGER, Cam
 
     DIM px(8) AS SINGLE
     DIM py(8) AS SINGLE
+    DIM x1 AS INTEGER
+    DIM y1 AS INTEGER
+    DIM x2 AS INTEGER
+    DIM y2 AS INTEGER
 
     FOR c = 1 TO NumCubes
         FOR i = 1 TO 8
@@ -153,15 +157,16 @@ SUB RenderCubes (Cubes() AS SINGLE, Edges() AS INTEGER, NumCubes AS INTEGER, Cam
     NEXT c
 END SUB
 
+
 SUB DrawLineToBuffer (Buffer() AS INTEGER, x1 AS INTEGER, y1 AS INTEGER, x2 AS INTEGER, y2 AS INTEGER, ScreenWidth AS INTEGER, ScreenHeight AS INTEGER, Col AS INTEGER)
-    ' Bresenham's line algorithm
-    DIM dx AS INTEGER, dy AS INTEGER, sx AS INTEGER, sy AS INTEGER, er AS INTEGER, e2 AS INTEGER
+    ' Simplified Bresenham's line algorithm
+    DIM dx AS INTEGER, dy AS INTEGER, sx AS INTEGER, sy AS INTEGER, error AS INTEGER, e2 AS INTEGER
 
     dx = ABS(x2 - x1)
     dy = ABS(y2 - y1)
     IF x1 < x2 THEN sx = 1 ELSE sx = -1
     IF y1 < y2 THEN sy = 1 ELSE sy = -1
-    er = dx - dy
+    error = dx - dy
 
     DO
         IF x1 >= 0 AND x1 < ScreenWidth AND y1 >= 0 AND y1 < ScreenHeight THEN
@@ -169,13 +174,13 @@ SUB DrawLineToBuffer (Buffer() AS INTEGER, x1 AS INTEGER, y1 AS INTEGER, x2 AS I
         END IF
 
         IF x1 = x2 AND y1 = y2 THEN EXIT DO
-        e2 = 2 * er
+        e2 = 2 * error
         IF e2 > -dy THEN
-            er = er - dy
+            error = error - dy
             x1 = x1 + sx
         END IF
         IF e2 < dx THEN
-            er = er + dx
+            error = error + dx
             y1 = y1 + sy
         END IF
     LOOP
