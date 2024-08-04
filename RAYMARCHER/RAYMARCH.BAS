@@ -3,6 +3,7 @@
 DECLARE SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
 DECLARE SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SINGLE, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
 DECLARE SUB GenCube (cube() AS SINGLE, edges() AS INTEGER, locX AS INTEGER, locY AS INTEGER, locZ AS INTEGER, sclX AS SINGLE, sclY AS SINGLE, sclZ AS SINGLE, rotX AS SINGLE, rotY AS SINGLE, rotZ AS SINGLE)
+DECLARE FUNCTION PARSE$ (line$ AS STRING, index AS INTEGER)
 
 SCREEN 7, , 0, 1  ' set SCREEN 7 with two pages
 
@@ -59,7 +60,7 @@ DO
     
     PCOPY 1, 0
     CLS
-    
+
     ' render code here
     RenderCubes cubes(), edges(), numCubes, camX, camY, camZ, camRotX, camRotY
     
@@ -127,3 +128,4 @@ SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, cam
         NEXT i
     NEXT c
 END SUB
+
