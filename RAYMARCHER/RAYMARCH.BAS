@@ -34,26 +34,38 @@ camZ = 0
 camRotX = 0
 camRotY = 0
 
-RANDOMIZE TIMER
+'filename$ = ""
+'IF COMMAND$ <> "" THEN
+'    IF LEFT$(COMMAND$, 2) = "/f" THEN
+'        filename$ = MID$(COMMAND$, 4)
+'    END IF
+'END IF
 
-FOR i = 1 TO numCubes
-    locX = INT(RND * 20) - 10
-    locY = INT(RND * 20) - 10
-    locZ = INT(RND * 20) - 10
-    sclX = RND + 0.5
-    sclY = RND + 0.5
-    sclZ = RND + 0.5
-    
-    DIM tempCube(8, 3) AS SINGLE
+IF filename$ = <> "" THEN
+    'CALL InitializeCubes(cubes(), edges(), numCubes, filename$)
+    CALL ReadCubesFromFile(filename$, cubes(), edges(), numCubes)
+ELSE
+    RANDOMIZE TIMER
 
-    CALL GenCube(tempCube(), edges(), locX, locY, locZ, sclX, sclY, sclZ, 0, 0, 0)
-    ' we can pass ANY vertices to the GenCube function, as long as they are in the same format as the cube() array, which can be used for custom shapes
-    FOR v = 1 TO 8
-        FOR c = 1 TO 3
-            cubes(i, v, c) = tempCube(v, c)
-        NEXT c
-    NEXT v
-NEXT i
+    FOR i = 1 TO numCubes
+        locX = INT(RND * 20) - 10
+        locY = INT(RND * 20) - 10
+        locZ = INT(RND * 20) - 10
+        sclX = RND + 0.5
+        sclY = RND + 0.5
+        sclZ = RND + 0.5
+
+        DIM tempCube(8, 3) AS SINGLE
+
+        CALL GenCube(tempCube(), edges(), locX, locY, locZ, sclX, sclY, sclZ, 0, 0, 0)
+        ' we can pass ANY vertices to the GenCube function, as long as they are in the same format as the cube() array, which can be used for custom shapes
+        FOR v = 1 TO 8
+            FOR c = 1 TO 3
+                cubes(i, v, c) = tempCube(v, c)
+            NEXT c
+        NEXT v
+    NEXT i
+END IF
 
 DO
     
@@ -128,3 +140,45 @@ SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, cam
     NEXT c
 END SUB
 
+SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER)
+    DIM line AS STRING
+    DIM fields() AS STRING
+    DIM f AS INTEGER
+
+    f = FREEFILE
+    OPEN filename FOR INPUT AS #f
+    numCubes = 0
+
+    DO WHILE NOT EOF(f)
+        LINE INPUT #f, line
+        fields() = SPLIT(line, ",")
+
+        IF UBOUND(fields) = 8 THEN
+            numCubes = numCubes + 1
+            locX = VAL(fields(0))
+            locY = VAL(fields(1))
+            locZ = VAL(fields(2))
+            rotX = VAL(fields(3))
+            rotY = VAL(fields(4))
+            rotZ = VAL(fields(5))
+            sclX = VAL(fields(6))
+            sclY = VAL(fields(7))
+            sclZ = VAL(fields(8))
+
+            ' Use a temporary array to hold the cube vertices for the GenCube call
+            DIM tempCube(8, 3) AS SINGLE
+
+            ' Call GenCube to generate a cube with the parameters from the file
+            CALL GenCube(tempCube(), edges(), locX, locY, locZ, sclX, sclY, sclZ, rotX, rotY, rotZ)
+
+            ' Copy the generated cube vertices to the main cubes array
+            FOR v = 1 TO 8
+                FOR c = 1 TO 3
+                    cubes(numCubes, v, c) = tempCube(v, c)
+                NEXT c
+            NEXT v
+        END IF
+    LOOP
+
+    CLOSE #f
+END SUB
