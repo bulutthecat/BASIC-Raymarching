@@ -3,6 +3,7 @@
 DECLARE SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
 DECLARE SUB Project3DTo2D (x AS SINGLE, y AS SINGLE, z AS SINGLE, px AS SINGLE, py AS SINGLE, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
 DECLARE SUB GenCube (cube() AS SINGLE, edges() AS INTEGER, locX AS INTEGER, locY AS INTEGER, locZ AS INTEGER, sclX AS SINGLE, sclY AS SINGLE, sclZ AS SINGLE, rotX AS SINGLE, rotY AS SINGLE, rotZ AS SINGLE)
+DECLARE SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER)
 
 SCREEN 7, , 0, 1  ' set SCREEN 7 with two pages
 
@@ -41,7 +42,16 @@ camRotY = 0
 '    END IF
 'END IF
 
-IF filename$ = <> "" THEN
+' Check for command line arguments
+filename$ = ""
+cmd$ = COMMAND$
+IF LEN(cmd$) > 0 THEN
+    IF LEFT$(cmd$, 2) = "/f" THEN
+        filename$ = MID$(cmd$, 4)
+    END IF
+END IF
+
+IF filename$ <> "" THEN
     'CALL InitializeCubes(cubes(), edges(), numCubes, filename$)
     CALL ReadCubesFromFile(filename$, cubes(), edges(), numCubes)
 ELSE
@@ -141,35 +151,38 @@ SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, cam
 END SUB
 
 SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER)
-    DIM line AS STRING
-    DIM fields() AS STRING
-    DIM f AS INTEGER
+    DIM fileLine AS STRING
+    DIM fileFields(8) AS STRING
+    DIM fileHandle AS INTEGER
+    DIM cubeLocX AS SINGLE, cubeLocY AS SINGLE, cubeLocZ AS SINGLE
+    DIM cubeRotX AS SINGLE, cubeRotY AS SINGLE, cubeRotZ AS SINGLE
+    DIM cubeSclX AS SINGLE, cubeSclY AS SINGLE, cubeSclZ AS SINGLE
 
-    f = FREEFILE
-    OPEN filename FOR INPUT AS #f
+    fileHandle = FREEFILE
+    OPEN filename FOR INPUT AS #fileHandle
     numCubes = 0
 
-    DO WHILE NOT EOF(f)
-        LINE INPUT #f, line
-        fields() = SPLIT(line, ",")
+    DO WHILE NOT EOF(fileHandle)
+        LINE INPUT #fileHandle, fileLine
+        fileFields() = SPLIT(fileLine, ",")
 
-        IF UBOUND(fields) = 8 THEN
+        IF UBOUND(fileFields) = 8 THEN
             numCubes = numCubes + 1
-            locX = VAL(fields(0))
-            locY = VAL(fields(1))
-            locZ = VAL(fields(2))
-            rotX = VAL(fields(3))
-            rotY = VAL(fields(4))
-            rotZ = VAL(fields(5))
-            sclX = VAL(fields(6))
-            sclY = VAL(fields(7))
-            sclZ = VAL(fields(8))
+            cubeLocX = VAL(fileFields(0))
+            cubeLocY = VAL(fileFields(1))
+            cubeLocZ = VAL(fileFields(2))
+            cubeRotX = VAL(fileFields(3))
+            cubeRotY = VAL(fileFields(4))
+            cubeRotZ = VAL(fileFields(5))
+            cubeSclX = VAL(fileFields(6))
+            cubeSclY = VAL(fileFields(7))
+            cubeSclZ = VAL(fileFields(8))
 
             ' Use a temporary array to hold the cube vertices for the GenCube call
             DIM tempCube(8, 3) AS SINGLE
 
             ' Call GenCube to generate a cube with the parameters from the file
-            CALL GenCube(tempCube(), edges(), locX, locY, locZ, sclX, sclY, sclZ, rotX, rotY, rotZ)
+            CALL GenCube(tempCube(), edges(), cubeLocX, cubeLocY, cubeLocZ, cubeSclX, cubeSclY, cubeSclZ, cubeRotX, cubeRotY, cubeRotZ)
 
             ' Copy the generated cube vertices to the main cubes array
             FOR v = 1 TO 8
@@ -180,5 +193,5 @@ SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER
         END IF
     LOOP
 
-    CLOSE #f
+    CLOSE #fileHandle
 END SUB
