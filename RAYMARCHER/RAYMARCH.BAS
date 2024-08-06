@@ -178,13 +178,10 @@ SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER
             cubeSclY = VAL(fileFields(7))
             cubeSclZ = VAL(fileFields(8))
 
-            ' Use a temporary array to hold the cube vertices for the GenCube call
             DIM tempCube(8, 3) AS SINGLE
 
-            ' Call GenCube to generate a cube with the parameters from the file
             CALL GenCube(tempCube(), edges(), cubeLocX, cubeLocY, cubeLocZ, cubeSclX, cubeSclY, cubeSclZ, cubeRotX, cubeRotY, cubeRotZ)
 
-            ' Copy the generated cube vertices to the main cubes array
             FOR v = 1 TO 8
                 FOR c = 1 TO 3
                     cubes(numCubes, v, c) = tempCube(v, c)
