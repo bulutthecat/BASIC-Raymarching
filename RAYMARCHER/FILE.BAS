@@ -1,4 +1,6 @@
 DECLARE SUB GenCube (cube() AS SINGLE, edges() AS INTEGER, locX AS INTEGER, locY AS INTEGER, locZ AS INTEGER, sclX AS SINGLE, sclY AS SINGLE, sclZ AS SINGLE, rotX AS SINGLE, rotY AS SINGLE, rotZ AS SINGLE)
+DECLARE SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER)
+
 ' Copyright (C) Kevin Dalli 2024
 
 'OPEN "A:\\RAYMARCHER\\BUILD\\EXAMPLE.CSV" FOR INPUT AS #1
@@ -45,6 +47,7 @@ SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER
     DIM cubeSclX AS SINGLE, cubeSclY AS SINGLE, cubeSclZ AS SINGLE
     DIM startPos AS INTEGER, endPos AS INTEGER, fieldNum AS INTEGER
     DIM rfield AS STRING
+    DIM RtempCube(8, 3) AS SINGLE ' avoid redefenition
 
     fileHandle = FREEFILE
     OPEN filename FOR INPUT AS #fileHandle
@@ -93,12 +96,11 @@ SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER
 
         IF fieldNum = 8 THEN  ' Make sure we have exactly 9 fields (0-8)
             numCubes = numCubes + 1
-            DIM tempCube(8, 3) AS SINGLE
-            CALL GenCube(tempCube(), edges(), cubeLocX, cubeLocY, cubeLocZ, cubeSclX, cubeSclY, cubeSclZ, cubeRotX, cubeRotY, cubeRotZ)
+            CALL GenCube(RtempCube(), edges(), cubeLocX, cubeLocY, cubeLocZ, cubeSclX, cubeSclY, cubeSclZ, cubeRotX, cubeRotY, cubeRotZ)
 
             FOR v = 1 TO 8
                 FOR c = 1 TO 3
-                    cubes(numCubes, v, c) = tempCube(v, c)
+                    cubes(numCubes, v, c) = RtempCube(v, c)
                 NEXT c
             NEXT v
         END IF
