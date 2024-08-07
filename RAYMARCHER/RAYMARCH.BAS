@@ -123,6 +123,8 @@ LOOP
 SCREEN 0  ' restore to screen 0 (text mode)
 END
 
+' CONTROL FUNCTIONS
+
 SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
     CONST cx = 160
     CONST cy = 100
@@ -151,58 +153,58 @@ SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, cam
 END SUB
 
 SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER)
-    DIM fileLine AS STRING
+    DIM readline AS STRING
     DIM fileHandle AS INTEGER
-    DIM cubeLocX AS SINGLE, cubeLocY AS SINGLE, cubeLocZ AS SINGLE
+    DIM cubeLocX AS INTEGER, cubeLocY AS INTEGER, cubeLocZ AS INTEGER
     DIM cubeRotX AS SINGLE, cubeRotY AS SINGLE, cubeRotZ AS SINGLE
     DIM cubeSclX AS SINGLE, cubeSclY AS SINGLE, cubeSclZ AS SINGLE
     DIM startPos AS INTEGER, endPos AS INTEGER, fieldNum AS INTEGER
-    DIM field AS STRING
+    DIM rfield AS STRING
 
     fileHandle = FREEFILE
     OPEN filename FOR INPUT AS #fileHandle
     numCubes = 0
 
     DO WHILE NOT EOF(fileHandle)
-        LINE INPUT #fileHandle, fileLine
+        LINE INPUT #fileHandle, readline
         
         startPos = 1
         fieldNum = 0
         
         ' Parsing the line for CSV fields
         DO
-            endPos = INSTR(startPos, fileLine, ",")
+            endPos = INSTR(startPos, readline, ",")
             IF endPos = 0 THEN
-                endPos = LEN(fileLine) + 1  ' Handle the last field
+                endPos = LEN(readline) + 1  ' Handle the last field
             END IF
             
-            field = MID$(fileLine, startPos, endPos - startPos)
+            rfield = MID$(readline, startPos, endPos - startPos)
             
             SELECT CASE fieldNum
                 CASE 0
-                    cubeLocX = VAL(field)
+                    cubeLocX = VAL(rfield)
                 CASE 1
-                    cubeLocY = VAL(field)
+                    cubeLocY = VAL(rfield)
                 CASE 2
-                    cubeLocZ = VAL(field)
+                    cubeLocZ = VAL(rfield)
                 CASE 3
-                    cubeRotX = VAL(field)
+                    cubeRotX = VAL(rfield)
                 CASE 4
-                    cubeRotY = VAL(field)
+                    cubeRotY = VAL(rfield)
                 CASE 5
-                    cubeRotZ = VAL(field)
+                    cubeRotZ = VAL(rfield)
                 CASE 6
-                    cubeSclX = VAL(field)
+                    cubeSclX = VAL(rfield)
                 CASE 7
-                    cubeSclY = VAL(field)
+                    cubeSclY = VAL(rfield)
                 CASE 8
-                    cubeSclZ = VAL(field)
+                    cubeSclZ = VAL(rfield)
             END SELECT
 
-            IF endPos > LEN(fileLine) THEN EXIT DO
+            IF endPos > LEN(readline) THEN EXIT DO
             startPos = endPos + 1
             fieldNum = fieldNum + 1
-        LOOP WHILE startPos <= LEN(fileLine)
+        LOOP WHILE startPos <= LEN(readline)
 
         IF fieldNum = 8 THEN  ' Make sure we have exactly 9 fields (0-8)
             numCubes = numCubes + 1
