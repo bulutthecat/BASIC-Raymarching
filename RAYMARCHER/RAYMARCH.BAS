@@ -61,9 +61,9 @@ ELSE
         locX = INT(RND * 20) - 10
         locY = INT(RND * 20) - 10
         locZ = INT(RND * 20) - 10
-        sclX = RND + 0.5
-        sclY = RND + 0.5
-        sclZ = RND + 0.5
+        sclX = RND + .5
+        sclY = RND + .5
+        sclZ = RND + .5
 
         DIM tempCube(8, 3) AS SINGLE
 
@@ -90,17 +90,17 @@ DO
     key$ = INKEY$
     SELECT CASE key$
         CASE "w"
-            camZ = camZ + 0.1
+            camZ = camZ + .1
         CASE "s"
-            camZ = camZ - 0.1
+            camZ = camZ - .1
         CASE "a"
-            camX = camX - 0.1
+            camX = camX - .1
         CASE "d"
-            camX = camX + 0.1
+            camX = camX + .1
         CASE "q"
-            camY = camY - 0.1
+            camY = camY - .1
         CASE "e"
-            camY = camY + 0.1
+            camY = camY + .1
         CASE "r"
             camX = 0
             camY = 0
@@ -152,72 +152,3 @@ SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, cam
     NEXT c
 END SUB
 
-SUB ReadCubesFromFile (filename AS STRING, cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER)
-    DIM readline AS STRING
-    DIM fileHandle AS INTEGER
-    DIM cubeLocX AS INTEGER, cubeLocY AS INTEGER, cubeLocZ AS INTEGER
-    DIM cubeRotX AS SINGLE, cubeRotY AS SINGLE, cubeRotZ AS SINGLE
-    DIM cubeSclX AS SINGLE, cubeSclY AS SINGLE, cubeSclZ AS SINGLE
-    DIM startPos AS INTEGER, endPos AS INTEGER, fieldNum AS INTEGER
-    DIM rfield AS STRING
-
-    fileHandle = FREEFILE
-    OPEN filename FOR INPUT AS #fileHandle
-    numCubes = 0
-
-    DO WHILE NOT EOF(fileHandle)
-        LINE INPUT #fileHandle, readline
-        
-        startPos = 1
-        fieldNum = 0
-        
-        ' Parsing the line for CSV fields
-        DO
-            endPos = INSTR(startPos, readline, ",")
-            IF endPos = 0 THEN
-                endPos = LEN(readline) + 1  ' Handle the last field
-            END IF
-            
-            rfield = MID$(readline, startPos, endPos - startPos)
-            
-            SELECT CASE fieldNum
-                CASE 0
-                    cubeLocX = VAL(rfield)
-                CASE 1
-                    cubeLocY = VAL(rfield)
-                CASE 2
-                    cubeLocZ = VAL(rfield)
-                CASE 3
-                    cubeRotX = VAL(rfield)
-                CASE 4
-                    cubeRotY = VAL(rfield)
-                CASE 5
-                    cubeRotZ = VAL(rfield)
-                CASE 6
-                    cubeSclX = VAL(rfield)
-                CASE 7
-                    cubeSclY = VAL(rfield)
-                CASE 8
-                    cubeSclZ = VAL(rfield)
-            END SELECT
-
-            IF endPos > LEN(readline) THEN EXIT DO
-            startPos = endPos + 1
-            fieldNum = fieldNum + 1
-        LOOP WHILE startPos <= LEN(readline)
-
-        IF fieldNum = 8 THEN  ' Make sure we have exactly 9 fields (0-8)
-            numCubes = numCubes + 1
-            DIM tempCube(8, 3) AS SINGLE
-            CALL GenCube(tempCube(), edges(), cubeLocX, cubeLocY, cubeLocZ, cubeSclX, cubeSclY, cubeSclZ, cubeRotX, cubeRotY, cubeRotZ)
-
-            FOR v = 1 TO 8
-                FOR c = 1 TO 3
-                    cubes(numCubes, v, c) = tempCube(v, c)
-                NEXT c
-            NEXT v
-        END IF
-    LOOP
-
-    CLOSE #fileHandle
-END SUB
