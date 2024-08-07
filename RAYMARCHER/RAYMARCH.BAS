@@ -46,7 +46,7 @@ camRotY = 0
 filename$ = ""
 cmd$ = COMMAND$
 IF LEN(cmd$) > 0 THEN
-    IF LEFT$(cmd$, 2) = "/f" THEN
+    IF LEFT$(cmd$, 2) = "/F" THEN
         filename$ = MID$(cmd$, 4)
     END IF
 END IF
@@ -151,4 +151,3 @@ SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, cam
         NEXT i
     NEXT c
 END SUB
-
