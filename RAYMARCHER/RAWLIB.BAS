@@ -1,4 +1,7 @@
 ' Copyright (C) 2024 Kevin Dalli 
+
+' this program has a bug, where the hex data of the entire image is just 0x00
+
 DECLARE SUB SaveRawImage (filename$)
 
 SCREEN 13

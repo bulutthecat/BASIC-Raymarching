@@ -15,6 +15,12 @@ DIM edges(12, 2) AS INTEGER
 DIM numCubes AS INTEGER
 numCubes = MAXCUBES
 
+DIM headNode AS INTEGER
+headNode = 0
+
+DIM serialPort AS INTEGER
+serialPort = 0
+
 DIM i AS INTEGER
 DIM locX AS INTEGER
 DIM locY AS INTEGER
@@ -49,43 +55,89 @@ IF LEN(cmd$) > 0 THEN
     IF LEFT$(cmd$, 2) = "/F" THEN
         filename$ = MID$(cmd$, 4)
     END IF
+
+    IF LEFT$(cmd$, 2) = "/S" THEN
+        serialPort = 1
+    END IF
+
+    IF LEFT$(cmd$, 2) = "/H" THEN
+        headNode = 1
+    END IF
 END IF
 
-IF filename$ <> "" THEN
-    'CALL InitializeCubes(cubes(), edges(), numCubes, filename$)
-    CALL ReadCubesFromFile(filename$, cubes(), edges(), numCubes)
-ELSE
-    RANDOMIZE TIMER
+' Handle serial port case
+IF serialPort = 1 THEN
+    'CALL queryUpdate(serialPort$, 9600)
+    PRINT "serial init"
 
-    FOR i = 1 TO numCubes
-        locX = INT(RND * 20) - 10
-        locY = INT(RND * 20) - 10
-        locZ = INT(RND * 20) - 10
-        sclX = RND + .5
-        sclY = RND + .5
-        sclZ = RND + .5
+    IF filename$ = "" THEN
+        filename$ = "TEMP.CSV"
+    END IF
 
-        DIM ttempCube(8, 3) AS SINGLE
+    OPEN "TEMP.CSV" FOR APPEND AS #3
 
-        CALL GenCube(ttempCube(), edges(), locX, locY, locZ, sclX, sclY, sclZ, 0, 0, 0)
-        ' we can pass ANY vertices to the GenCube function, as long as they are in the same format as the cube() array, which can be used for custom shapes
-        FOR v = 1 TO 8
-            FOR c = 1 TO 3
-                cubes(i, v, c) = ttempCube(v, c)
-            NEXT c
-        NEXT v
-    NEXT i
+readTemp:
+    key$ = INKEY$
+    
+    IF key$ = CHR$(27) THEN
+        CLOSE #2
+        CLOSE #3
+        END
+    END IF
+
+    OPEN "COM" + STR$(serialPort) + ":9600,N,8,1,CS0,DS0" FOR INPUT AS #2
+    IF NOT EOF(1) THEN
+        LINE INPUT #2, serialReceived$
+        PRINT #3, serialReceived$
+    END IF
+
+    CALL ReadCubesFromFile("TEMP.CSV", cubes(), edges(), numCubes)
+
+    GOTO RenderCube
+END IF
+
+' Handle file or random cube initialization if not using serial port
+IF serialPort = 0 THEN
+    IF filename$ <> "" THEN
+        'CALL InitializeCubes(cubes(), edges(), numCubes, filename$)
+        CALL ReadCubesFromFile(filename$, cubes(), edges(), numCubes)
+    ELSE
+        RANDOMIZE TIMER
+
+        FOR i = 1 TO numCubes
+            locX = INT(RND * 20) - 10
+            locY = INT(RND * 20) - 10
+            locZ = INT(RND * 20) - 10
+            sclX = RND + .5
+            sclY = RND + .5
+            sclZ = RND + .5
+
+            DIM ttempCube(8, 3) AS SINGLE
+
+            CALL GenCube(ttempCube(), edges(), locX, locY, locZ, sclX, sclY, sclZ, 0, 0, 0)
+            FOR v = 1 TO 8
+                FOR c = 1 TO 3
+                    cubes(i, v, c) = ttempCube(v, c)
+                NEXT c
+            NEXT v
+        NEXT i
+    END IF
 END IF
 
 DO
-    
+
+RenderCube:
     PCOPY 1, 0
     CLS
 
     ' render code here
     RenderCubes cubes(), edges(), numCubes, camX, camY, camZ, camRotX, camRotY
-    
+
     PCOPY 0, 1
+
+    IF serialPort = 1 THEN
+        GOTO readTemp
+    END IF
 
     key$ = INKEY$
     SELECT CASE key$
@@ -116,13 +168,12 @@ DO
     IF key$ = CHR$(0) + CHR$(75) THEN camRotY = camRotY + 1 ' left arrow
     IF key$ = CHR$(0) + CHR$(77) THEN camRotY = camRotY - 1 ' right arrow
 
-    ' control delay
-    FOR delay = 1 TO 500: NEXT delay
+    ' control delay for debug only
+    'FOR delay = 1 TO 500: NEXT delay
 LOOP
 
 SCREEN 0  ' restore to screen 0 (text mode)
 END
-
 ' CONTROL FUNCTIONS
 
 SUB RenderCubes (cubes() AS SINGLE, edges() AS INTEGER, numCubes AS INTEGER, camX AS SINGLE, camY AS SINGLE, camZ AS SINGLE, camRotX AS SINGLE, camRotY AS SINGLE)
