@@ -1,6 +1,7 @@
 import bpy
 import csv
 import os
+import math
 
 class ExportCubesOperator(bpy.types.Operator):
     """Operator to export cube data to a CSV file"""
@@ -32,7 +33,9 @@ class ExportCubesOperator(bpy.types.Operator):
                     rotation = obj.rotation_euler
                     scale = obj.scale
                     writer.writerow([location.x, location.y, location.z, 
-                                     rotation.x, rotation.y, rotation.z,
+                                     math.degrees(rotation.x), # Blender uses radians, raymarcher uses degrees for readability in CSV
+                                     math.degrees(rotation.y),
+                                     math.degrees(rotation.z),
                                      scale.x, scale.y, scale.z])
 
     def invoke(self, context, event):
